@@ -46,7 +46,7 @@ import org.springframework.web.util.NestedServletException;
  * values through a registered {@link HandlerMethodReturnValueHandler} and
  * also supports setting the response status based on a method-level
  * {@code @ResponseStatus} annotation.
- *
+ * <p>
  * <p>A {@code null} return value (including void) may be interpreted as the
  * end of request processing in combination with a {@code @ResponseStatus}
  * annotation, a not-modified check condition
@@ -90,16 +90,22 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 
 
 	/**
+	 * 调用该方法并通过其中一个来处理返回值
 	 * Invoke the method and handle the return value through one of the
 	 * configured {@link HandlerMethodReturnValueHandler HandlerMethodReturnValueHandlers}.
-	 * @param webRequest the current request
+	 *
+	 * @param webRequest   the current request
+	 *                     当前的请求 / 包括的Servlet的 request对象以及response对象
 	 * @param mavContainer the ModelAndViewContainer for this request
+	 *                     这个请求的模型和视图容器类实例
 	 * @param providedArgs "given" arguments matched by type (not resolved)
 	 */
 	public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer mavContainer,
-			Object... providedArgs) throws Exception {
+								Object... providedArgs) throws Exception {
 
+		// 执行这个请求
 		Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
+
 		setResponseStatus(webRequest);
 
 		if (returnValue == null) {
@@ -107,8 +113,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 				mavContainer.setRequestHandled(true);
 				return;
 			}
-		}
-		else if (StringUtils.hasText(getResponseStatusReason())) {
+		} else if (StringUtils.hasText(getResponseStatusReason())) {
 			mavContainer.setRequestHandled(true);
 			return;
 		}
@@ -118,8 +123,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 		try {
 			this.returnValueHandlers.handleReturnValue(
 					returnValue, getReturnValueType(returnValue), mavContainer, webRequest);
-		}
-		catch (Exception ex) {
+		} catch (Exception ex) {
 			if (logger.isTraceEnabled()) {
 				logger.trace(formatErrorForReturnValue(returnValue), ex);
 			}
@@ -141,8 +145,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 			String reason = getResponseStatusReason();
 			if (StringUtils.hasText(reason)) {
 				response.sendError(status.value(), reason);
-			}
-			else {
+			} else {
 				response.setStatus(status.value());
 			}
 		}
@@ -153,6 +156,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 
 	/**
 	 * Does the given request qualify as "not modified"?
+	 *
 	 * @see ServletWebRequest#checkNotModified(long)
 	 * @see ServletWebRequest#checkNotModified(String)
 	 */
@@ -191,8 +195,7 @@ public class ServletInvocableHandlerMethod extends InvocableHandlerMethod {
 			super((Callable<Object>) () -> {
 				if (result instanceof Exception) {
 					throw (Exception) result;
-				}
-				else if (result instanceof Throwable) {
+				} else if (result instanceof Throwable) {
 					throw new NestedServletException("Async processing failed", (Throwable) result);
 				}
 				return result;

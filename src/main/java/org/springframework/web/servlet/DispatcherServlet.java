@@ -1031,18 +1031,23 @@ public class DispatcherServlet extends FrameworkServlet {
 					}
 				}
 
-				// 调用
+				// 调用所有的拦截器
+				// 如果拦截器中 有一个perHandle 方法返回false, 那么请求直接中断
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
+				// 调用实际处理业务的方法
+				// 获得一个模型视图对象
 				// Actually invoke the handler.
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
+				//
 				if (asyncManager.isConcurrentHandlingStarted()) {
 					return;
 				}
 
+				//
 				applyDefaultViewName(processedRequest, mv);
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
